@@ -197,7 +197,8 @@ public interface ServerEndpointConfig extends EndpointConfig {
         /**
          * This method is called by the container each time a new client connects to the logical endpoint this
          * configurator configures. Developers may override this method to control instantiation of endpoint instances
-         * in order to customize the initialization of the endpoint instance, or manage them in some other way. If the
+         * in order to customize the initialization of the endpoint instance, or manage them in some other way. For
+         * example, in WebSocket 2.3, developers may use a shared endpoint instance between connections. If the
          * developer overrides this method, services like dependency injection that are otherwise supported, for
          * example, when the implementation is part of the Java EE platform may not be available. The platform default
          * implementation of this method returns a new endpoint instance per call, thereby ensuring that there is one
@@ -209,7 +210,9 @@ public interface ServerEndpointConfig extends EndpointConfig {
          * @throws InstantiationException if there was an error producing the endpoint instance.
          */
         public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+
             return this.getContainerDefaultConfigurator().getEndpointInstance(endpointClass);
+
         }
 
     }
@@ -249,6 +252,7 @@ public interface ServerEndpointConfig extends EndpointConfig {
         private Class<?> endpointClass;
         private List<String> subprotocols = Collections.emptyList();
         private List<Extension> extensions = Collections.emptyList();
+        private boolean isSharedInstance = false;
         private List<Class<? extends Encoder>> encoders = Collections.emptyList();
         private List<Class<? extends Decoder>> decoders = Collections.emptyList();
         private ServerEndpointConfig.Configurator serverEndpointConfigurator;
@@ -279,7 +283,7 @@ public interface ServerEndpointConfig extends EndpointConfig {
          */
         public ServerEndpointConfig build() {
             return new DefaultServerEndpointConfig(this.endpointClass, this.path, this.subprotocols, this.extensions,
-                    this.encoders, this.decoders, this.serverEndpointConfigurator);
+                    this.encoders, this.decoders, this.isSharedInstance, this.serverEndpointConfigurator);
         }
 
         private Builder(Class<?> endpointClass, String path) {
@@ -334,6 +338,17 @@ public interface ServerEndpointConfig extends EndpointConfig {
          */
         public ServerEndpointConfig.Builder extensions(List<Extension> extensions) {
             this.extensions = (extensions == null) ? new ArrayList<>() : extensions;
+            return this;
+        }
+
+        /**
+         * Determines whether the endpoint instance created by this configuration is a shared instance or not. If true,
+         * the implementation must ensure that the same endpoint instance is used for all connections to the endpoint
+         * configured by this configuration object. If false, the implementation must ensure that a new endpoint is 
+         * created for each new connection. The default is false.
+         */
+        public ServerEndpointConfig.Builder sharedInstance(boolean isShared) {
+            this.isSharedInstance = isShared;
             return this;
         }
 

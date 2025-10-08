@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2020 Oracle and/or its affiliates and others.
+ * Copyright (c) 2018, 2025 Oracle and/or its affiliates and others.
  * All rights reserved.
  *
  * This program and the accompanying materials are made available under the
@@ -41,6 +41,7 @@ final class DefaultServerEndpointConfig implements ServerEndpointConfig {
     private List<Class<? extends Encoder>> encoders;
     private List<Class<? extends Decoder>> decoders;
     private Map<String, Object> userProperties = new HashMap<>();
+    private boolean isSharedInstance = false;
     private ServerEndpointConfig.Configurator serverEndpointConfigurator;
 
     // The builder ensures nothing except configurator can be {@code null}.
@@ -58,6 +59,15 @@ final class DefaultServerEndpointConfig implements ServerEndpointConfig {
         } else {
             this.serverEndpointConfigurator = serverEndpointConfigurator;
         }
+    }
+
+    // Same as above except for the isSharedInstance parameter
+    DefaultServerEndpointConfig(Class<?> endpointClass, String path, List<String> subprotocols,
+            List<Extension> extensions, List<Class<? extends Encoder>> encoders,
+            List<Class<? extends Decoder>> decoders, boolean isSharedInstance, ServerEndpointConfig.Configurator serverEndpointConfigurator) {
+
+        DefaultServerEndpointConfig(endpointClass, path, subprotocols, extensions, encoders, decoders, serverEndpointConfigurator);
+        this.isSharedInstance = isSharedInstance;
     }
 
     /**
